@@ -21,16 +21,21 @@ int main (void){
 			exit(0);
 		}else {	//when there may be more than one cmd from input 
 			char *p = strtok(cmd, " ");
-			cmd = p;
+			cmd = p;	//cmd = "run"
 			p = strtok(NULL, " ");
-			*(args) = p;
-			*(args+1) = NULL;
+			char *f = p;	//f = filename
+			p = strtok(NULL, " ");
+			//*(args) = p;	//filename
+			char path[127];
+			char abs[3] = "../";
+			strcat(path, abs);
+			strcat(path, p);
+			*(args) = path;
+			*(args + 1) = NULL;
 			if (strcmp(cmd, "run") == 0 && *(args) != NULL){
 				
-				if ((pid = fork()) == 0){
-					execvp(*args, );
-				}
-			
+				execvp(f, args);
+			}
 		}
 	
 	}
