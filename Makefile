@@ -1,2 +1,3 @@
 all:
-	gcc	-g	main.c	-o	app	-O2
+	gcc	-g	-c	part2.c		-o	part2.o
+
