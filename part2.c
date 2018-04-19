@@ -42,26 +42,33 @@ int add_to_addr(void * temp){
 	return added;
 }
 
-int add_to_files(char *s, FILE *f){
+FILE *add_to_files(char *s, char *mode){
+	char fname[127];
+	fname[0] = '\0';
+	strcpy(fname, s);
+	
 	int added = 0; 
+	FILE *f;
 	int i;
 	for (i = 0; i < 25; i++){
 		if(files[i].filename != NULL){
-			if(strcmp(s, files[i].filename) == 0){
+			if(strcmp(fname, files[i].filename) == 0){
 				files[i].ref_count++;
+				f = files[i].f;
 				added = 1;
 				break;
 			}
 		}
 	}
 	if (added == 0){
-		files[file_cnt].filename = s;
+		files[file_cnt].filename = fname;
 		files[file_cnt].ref_count = 1;
+		f = fopen(s, mode);
 		files[file_cnt].f = f;
 		file_cnt++;
 		added = 2;
 	}
-	return added;
+	return f;
 }
 
 
@@ -98,14 +105,13 @@ void cse320_free(void *p){
 }
 
 FILE *cse320_fopen( char *s, char *mode ){
-	FILE *f = fopen(s, mode);
 	sem_wait(&file);
-	add_to_files(s, f);
+	FILE *f = add_to_files(s, mode);
 	sem_post(&file);
 	return f;
 }
 
-void cse320_fclose(FILE *f){	//needs modification
+void cse320_fclose(FILE *f){
 	int closed = 0;
 	int i;
 	sem_wait(&file);
@@ -113,7 +119,7 @@ void cse320_fclose(FILE *f){	//needs modification
 		if( f == files[i].f && files[i].ref_count > 0){
 			files[i].ref_count--;
 			if(files[i].ref_count == 0){
-				fclose(f);	//can't work with either fclose or close
+				fclose(f);
 			}
 			closed = 1;
 			break;
