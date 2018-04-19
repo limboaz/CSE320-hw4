@@ -26,6 +26,7 @@ void cse320_fclose(FILE *);
 void cse320_clean();
 pid_t cse320_fork();
 unsigned int cse320_settimer(unsigned int);
-
+void printFiles();
+void printAddr();
 
 #endif

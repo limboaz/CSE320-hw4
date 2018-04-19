@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <wait.h>
 #include <semaphore.h>
+#include <pthread.h>
 
 addr_in_use addr[25];
 files_in_use files[25];
@@ -45,10 +46,12 @@ int add_to_files(char *s, FILE *f){
 	int added = 0; 
 	int i;
 	for (i = 0; i < 25; i++){
-		if(strcmp(s, files[i].filename) == 0){
-			files[i].ref_count++;
-			added = 1;
-			break;
+		if(files[i].filename != NULL){
+			if(strcmp(s, files[i].filename) == 0){
+				files[i].ref_count++;
+				added = 1;
+				break;
+			}
 		}
 	}
 	if (added == 0){
@@ -172,4 +175,19 @@ pid_t cse320_fork(){
 	}
 	
 	return pid;
+}
+
+//debug helpers
+void printAddr(){
+	int i;
+	for (i = 0; i < 25 && addr[i].addr != NULL; i++){
+		printf("NO: %d ADDR: %p CNT: %d\n", i, addr[i].addr, addr[i].ref_count);
+	}
+}
+
+void printFiles(){
+	int i;
+	for (i = 0; i < 25 && files[i].f != NULL; i++){
+		printf("NO: %d NAME: %s CNT:%d\n", i, files[i].filename, files[i].ref_count);
+	}
 }
