@@ -37,9 +37,6 @@ int main (void){
 			printFiles();
 		}else if(strcmp(arg, "exit") == 0){
 			exit(0);
-		}else{
-			printf("illegal command. \n");
 		}
-
 	}
 }

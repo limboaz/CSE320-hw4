@@ -30,20 +30,25 @@ int add_to_addr(void * temp){
 		if ( temp == addr[i].addr ){
 			addr[i].ref_count++;
 			added = 1;	//existing address
-			break;
+			return added;
 		}
 	}
-	if ( added == 0 ){
+	if ( added == 0 && addr_cnt < 25){
 		addr[addr_cnt].addr = temp;
 		addr[addr_cnt].ref_count = 1;
 		added = 2;	//new address
 		addr_cnt++;
+	}else if ( added == 0){
+		free(temp);
+		sem_post(&ad);
+		cse320_clean();
+		exit(-1);
 	}
 	return added;
 }
 
-FILE *add_to_files(char *s, char *mode){
-	char fname[127];
+FILE *add_to_files(const char *s, char *mode){
+	char *fname = (char *)malloc(127);
 	fname[0] = '\0';
 	strcpy(fname, s);
 	
@@ -60,13 +65,18 @@ FILE *add_to_files(char *s, char *mode){
 			}
 		}
 	}
-	if (added == 0){
+	if (added == 0 && file_cnt < 25){
 		files[file_cnt].filename = fname;
 		files[file_cnt].ref_count = 1;
 		f = fopen(s, mode);
 		files[file_cnt].f = f;
 		file_cnt++;
 		added = 2;
+	}else if (added == 0){
+		sem_post(&file);
+		free(fname);
+		cse320_clean();
+		exit(-1);
 	}
 	return f;
 }
@@ -77,6 +87,7 @@ void *cse320_malloc(int size){
 	sem_wait(&ad);
 	add_to_addr(temp);
 	sem_post(&ad);
+	return temp;
 }
 
 void cse320_free(void *p){
@@ -149,10 +160,18 @@ void cse320_clean(){
 	for ( i = 0; i < 25; i++ ){
 		if (addr[i].ref_count > 0){
 			free(addr[i].addr);
+			addr[i].addr = NULL;
+			addr[i].ref_count = 0;
+			addr_cnt = 0;
 			freed++;
 		}
 		if (files[i].ref_count > 0){
-			fclose(files[i].f);	//problem
+			fclose(files[i].f);	
+			free(files[i].filename);
+			files[i].filename = NULL;
+			files[i].f = NULL;
+			files[i].ref_count = 0;
+			file_cnt = 0;
 			closed++;
 		}
 
@@ -162,7 +181,9 @@ void cse320_clean(){
 }
 
 void handler(int sig){
+	alarm(sec);
 	while(wait(NULL) != -1);
+	//alarm(sec);
 }
 
 unsigned int cse320_settimer(unsigned int t){

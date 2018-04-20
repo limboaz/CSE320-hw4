@@ -17,6 +17,7 @@ typedef struct files_in_use{
 	FILE *f;
 }files_in_use;
 
+extern struct files_in_use files[25];
 
 void *cse320_malloc(int);
 void cse320_free(void *);
