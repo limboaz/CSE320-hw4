@@ -6,14 +6,13 @@
 #define XD 0
 
 int main (void){
-	printf("Please select from the following command:\nrun X\nhelp\nexit\ntype 'help' to see all available commands\n");
-	//char * command = (char *)malloc(255);
-	//scanf("%s", command);
+	
 	pid_t pid;
 
 	char *args[6];
 	char cmd[127];
 	while(1){
+		printf("Please select from the following command:\nrun X\nhelp\nexit\ntype 'help' to see all available commands\n");
 		fgets(cmd, 127, stdin);
 		int i;
 		for(i = 0; i < 127; i++){
@@ -23,7 +22,7 @@ int main (void){
 			}
 		}
 		if (strcmp(cmd, "help") == 0){
-			printf("At printing help. \n");
+			printf("run X: X can be any executable with at most five parameters\nhelp\nexit\n");
 		}else if (strcmp(cmd, "exit") == 0){
 			wait(NULL);
 			exit(0);
@@ -37,11 +36,11 @@ int main (void){
 				p = strtok(NULL, " ");
 			}
 
-			*(args + 5) = NULL;
+			*(args + j) = NULL;
 			if (strncmp(cmd, "run", 3) == 0 && *(args) != NULL){
 				
 				if ((pid = fork()) == 0){
-					printf("%d\n", execvp(*(args), args));
+					execvp(*(args), args);
 					char rpl[127];
 					rpl[0] = '.';
 					rpl[1] = '/';

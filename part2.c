@@ -21,6 +21,7 @@ sem_t ad, file;
 int Sem_init(){		//tell user to call it first  add it to header
 	sem_init(&ad, 0, 1);
 	sem_init(&file, 0, 1);
+	return 1;
 }
 
 int add_to_addr(void * temp){
@@ -34,10 +35,16 @@ int add_to_addr(void * temp){
 		}
 	}
 	if ( added == 0 && addr_cnt < 25){
-		addr[addr_cnt].addr = temp;
-		addr[addr_cnt].ref_count = 1;
-		added = 2;	//new address
-		addr_cnt++;
+		int j;
+		for ( j = 0; j < 25; j ++){
+			if (addr[j].addr == NULL){
+			addr[j].addr = temp;
+			addr[j].ref_count = 1;
+			added = 2;	//new address
+			addr_cnt++;
+			break;
+			}
+		}
 	}else if ( added == 0){
 		free(temp);
 		sem_post(&ad);
@@ -66,12 +73,18 @@ FILE *add_to_files(const char *s, char *mode){
 		}
 	}
 	if (added == 0 && file_cnt < 25){
-		files[file_cnt].filename = fname;
-		files[file_cnt].ref_count = 1;
-		f = fopen(s, mode);
-		files[file_cnt].f = f;
-		file_cnt++;
-		added = 2;
+		int j;
+		for ( j = 0; j < 25; j++){
+			if (files[j].ref_count == 0){
+				files[j].filename = fname;
+				files[j].ref_count = 1;
+				f = fopen(s, mode);
+				files[j].f = f;
+				file_cnt++;
+				added = 2;
+				break;
+			}
+		}
 	}else if (added == 0){
 		sem_post(&file);
 		free(fname);
@@ -99,6 +112,7 @@ void cse320_free(void *p){
 			addr[i].addr = NULL;
 			addr[i].ref_count --;
 			free(p);
+			addr_cnt--;
 			freed = 1;
 			break;
 		}else if(addr[i].addr == p){
@@ -131,6 +145,7 @@ void cse320_fclose(FILE *f){
 			files[i].ref_count--;
 			if(files[i].ref_count == 0){
 				fclose(f);
+				file_cnt--;
 			}
 			closed = 1;
 			break;
@@ -181,14 +196,17 @@ void cse320_clean(){
 }
 
 void handler(int sig){
-	alarm(sec);
 	while(wait(NULL) != -1);
-	//alarm(sec);
+	alarm(sec);
+	//signal(SIGALRM, handler);
+	
 }
 
 unsigned int cse320_settimer(unsigned int t){
 	sec = t;
-	return sec;
+	if ( t > 0)
+		return sec;
+	else exit(-1);
 }
 
 pid_t cse320_fork(){
