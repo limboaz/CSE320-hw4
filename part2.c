@@ -196,7 +196,7 @@ void cse320_clean(){
 }
 
 void handler(int sig){
-	while(wait(NULL) != -1);
+	while(waitpid(-1, NULL, WNOHANG) > 0);
 	alarm(sec);
 	//signal(SIGALRM, handler);
 	
@@ -213,10 +213,11 @@ pid_t cse320_fork(){
 	pid_t pid;
 	
 	signal(SIGALRM, handler);
+	alarm(sec);
 	if ((pid = fork()) == 0){
 		
 	} else {
-		alarm(sec);
+	
 	}
 	
 	return pid;
